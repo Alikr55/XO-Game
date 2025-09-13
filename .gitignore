@@ -1,34 +1,265 @@
-# Gradle files
-.gradle/
-build/
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>بازی XO حرفه‌ای</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;font-family:'Tahoma',sans-serif;}
+body{display:flex;justify-content:center;align-items:center;overflow:hidden;background:#1f1c2c;color:#fff;}
 
-# Local configuration file (sdk path, etc)
-local.properties
+/* ----- لودینگ ----- */
+#loading{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:flex;justify-content:center;align-items:center;flex-direction:column;
+  font-size:5vw;background:#1f1c2c;transition:opacity 0.5s;
+}
+#loading.hidden{opacity:0;pointer-events:none;}
 
-# Log/OS Files
-*.log
+/* ----- منو ----- */
+.menu, .game{width:100%;height:100%;display:none;flex-direction:column;justify-content:center;align-items:center;}
+.menu.active, .game.active{display:flex;}
+.menu h1{font-size:8vw;margin-bottom:4vw;text-shadow:0 0 15px #000;}
+.menu button{font-size:5vw;padding:3vw 8vw;border:none;border-radius:3vw;cursor:pointer;margin:1.5vw;transition:0.3s;background:#00c853;color:#fff;}
+.menu button:hover{opacity:0.85;}
+.menu .info{margin-top:4vw;font-size:3vw;display:flex;justify-content:space-between;align-items:center;width:80%;}
+.creator-box{border:2px solid #fff;padding:0.5vw 1vw;border-radius:1.5vw;box-shadow:0 0 15px rgba(255,255,255,0.5);font-size:2.5vw;}
+.support-box{cursor:pointer;background:rgba(255,255,255,0.1);padding:1vw 3vw;border-radius:2vw;transition:0.3s;font-size:2.5vw;}
+.support-box:hover{background:rgba(255,255,255,0.25);}
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.aab
-*.apk
-output-metadata.json
+/* ----- بازی ----- */
+h1.game-title{margin-bottom:2vh;font-size:6vw;text-shadow:0 0 15px #000;}
+.scoreboard{padding:2vw 4vw;border-radius:3vw;background: rgba(255,255,255,0.1);backdrop-filter:blur(10px);font-weight:bold;font-size:4vw;color:#fff;box-shadow:0 0 20px rgba(0,0,0,0.3);margin-bottom:3vh;}
+.board{display:grid;grid-template-columns: repeat(3, minmax(80px, 25vw));grid-template-rows: repeat(3, minmax(80px, 25vw));gap:2vw;padding:2vw;border-radius:5vw;background: rgba(255,255,255,0.08);box-shadow:0 0 25px rgba(255,255,255,0.2), inset 0 0 20px rgba(255,255,255,0.1);position:relative;}
+.cell{display:flex;justify-content:center;align-items:center;font-size:10vw;font-weight:bold;border-radius:2vw;cursor:pointer;background: rgba(255,255,255,0.1);box-shadow: inset 0 0 20px rgba(255,255,255,0.15),0 8px 20px rgba(0,0,0,0.4);transition:0.3s;backdrop-filter: blur(10px);}
+.cell:hover{transform:scale(1.05);}
+.cell.taken{cursor:not-allowed;}
+.cell.X{color:#ff4d4d;text-shadow:0 0 15px #ff6666,0 0 25px #ffcccc;}
+.cell.O{color:#00c3ff;text-shadow:0 0 15px #00e5ff,0 0 25px #99f3ff;}
+#status{font-size:4vw;font-weight:bold;margin-top:2vh;text-shadow:0 0 10px #000;}
+.win-line{position:absolute;background: linear-gradient(90deg,#ffeb3b,#ff5722);box-shadow:0 0 15px #ffeb3b,0 0 25px #ff5722;transform-origin:center center;height:0.5vw;width:0;top:0;left:0;pointer-events:none;}
+.game button{margin-top:3vh;padding:2vh 4vw;border:none;border-radius:2vw;background:#0077ff;color:#fff;font-size:4vw;cursor:pointer;transition:0.3s;}
+.game button:hover{background:#0056cc;}
+</style>
+</head>
+<body>
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+<!-- لودینگ -->
+<div id="loading">⏳ در حال بارگذاری...</div>
 
-# Keystore files
-*.jks
-*.keystore
+<!-- منو -->
+<div class="menu" id="menu">
+  <h1>🎮 بازی XO</h1>
+  <button onclick="selectMode('two')">👥 دو نفره</button>
+  <button onclick="selectMode('computer')">🖥️ بازی با کامپیوتر</button>
+  <div class="info">
+    <div class="creator-box">🎮 نسخه بازی: 1.0</div>
+    <div class="support-box" onclick="window.open('https://www.coffeebede.com/alikarimi','_blank')">
+      ❤️اگه بازی رو دوست داشتی با یک حمایت مالی کوچیک از ما حمایت کن تا بازی های جدید بسازیم❤️
+    </div>
+  </div>
+</div>
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+<!-- بازی -->
+<div class="game" id="game">
+  <h1 class="game-title">بازی XO</h1>
+  <div class="scoreboard" id="scoreboard">❌ X: <span id="scoreX">0</span> | ⭕ O: <span id="scoreO">0</span></div>
+  <div class="board" id="board"></div>
+  <p id="status">نوبت: X</p>
+  <button onclick="restartGame()">🔄 شروع دوباره</button>
+  <button onclick="backToMenu()">🏠 بازگشت به منو</button>
+</div>
 
-# Android Profiling
-*.hprof
+<script>
+const loading=document.getElementById("loading");
+const menu=document.getElementById("menu");
+const game=document.getElementById("game");
+const board=document.getElementById("board");
+const statusText=document.getElementById("status");
+const scoreXEl=document.getElementById("scoreX");
+const scoreOEl=document.getElementById("scoreO");
+
+let currentPlayer="X";
+let cells=Array(9).fill(null);
+let gameOver=false;
+let scoreX=0, scoreO=0;
+let winLine=null;
+let gameMode="two"; 
+
+// لودینگ
+window.addEventListener("load",()=>{
+  setTimeout(()=>{
+    loading.classList.add("hidden");
+    setTimeout(()=>{ loading.style.display="none"; }, 500);
+    menu.classList.add("active");
+  },2000);
+});
+
+// انتخاب حالت بازی
+function selectMode(mode){
+  gameMode=mode;
+  menu.classList.remove("active");
+  game.classList.add("active");
+  setupBoard();
+}
+
+// ساخت برد
+function setupBoard(){
+  board.innerHTML="";
+  cells.fill(null);
+  gameOver=false;
+  currentPlayer="X";
+  statusText.textContent="نوبت: X";
+  if(winLine){winLine.remove(); winLine=null;}
+  for(let i=0;i<9;i++){
+    const cell=document.createElement("div");
+    cell.classList.add("cell");
+    cell.addEventListener("click",()=>handleClick(i,cell));
+    board.appendChild(cell);
+  }
+}
+
+// کلیک روی سلول
+function handleClick(index,cell){
+  if(cells[index]||gameOver) return;
+  cells[index]=currentPlayer;
+  cell.textContent=currentPlayer;
+  cell.classList.add("taken",currentPlayer);
+  const winPattern=checkWin();
+  if(winPattern){
+    statusText.textContent=`🏆 برنده: ${currentPlayer} 🎉`;
+    gameOver=true;
+    animateWinCells(winPattern);
+    drawWinLine(winPattern);
+    updateScore(currentPlayer);
+    return;
+  }
+  if(cells.every(c=>c!==null)){
+    statusText.textContent="🤝 مساوی شد!";
+    gameOver=true;
+    animateDrawCells();
+    return;
+  }
+  currentPlayer=currentPlayer==="X"?"O":"X";
+  statusText.textContent=`نوبت: ${currentPlayer}`;
+  if(gameMode==="computer" && currentPlayer==="O" && !gameOver){
+    setTimeout(computerMoveSmart,300);
+  }
+}
+
+// بررسی برد
+function checkWin(){
+  const winPatterns=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(let pattern of winPatterns){
+    const [a,b,c]=pattern;
+    if(cells[a] && cells[a]===cells[b] && cells[a]===cells[c]) return pattern;
+  }
+  return null;
+}
+
+// انیمیشن خانه‌های برد
+function animateWinCells(pattern){
+  pattern.forEach((i,index)=>{
+    setTimeout(()=>{
+      const cell=board.children[i];
+      cell.style.background="rgba(255,255,0,0.5)";
+      cell.style.transform="scale(1.1)";
+    },index*200);
+  });
+}
+
+// انیمیشن خانه‌ها هنگام مساوی
+function animateDrawCells(){
+  const colors=["#ff4d4d","#4dff4d","#4d4dff","#ff4dff","#4dffff","#ffff4d","#ff964d","#964dff","#4dff96"];
+  board.children.forEach((cell,i)=>{
+    setTimeout(()=>{
+      cell.style.background=colors[i%colors.length];
+      cell.style.transform="scale(1.05)";
+    },i*100);
+  });
+}
+
+// خط برد
+function drawWinLine(pattern){
+  if(winLine) winLine.remove();
+  winLine=document.createElement("div");
+  winLine.classList.add("win-line");
+  const [a,b,c]=pattern;
+  const boardRect=board.getBoundingClientRect();
+  const cellSize=boardRect.width/3;
+
+  if([0,1,2].includes(a) && [0,1,2].includes(c)){ // افقی
+    winLine.style.width="100%";
+    winLine.style.height="0.5vw";
+    winLine.style.top=`${cellSize/2 + Math.floor(a/3)*cellSize}px`;
+    winLine.style.left="0";
+  }
+  else if([0,3,6].includes(a) && [0,3,6].includes(c)){ // عمودی
+    winLine.style.width="0.5vw";
+    winLine.style.height="100%";
+    winLine.style.left=`${cellSize/2 + a%3*cellSize}px`;
+    winLine.style.top="0";
+  }
+  else if(a===0 && c===8){ // مورب اصلی
+    winLine.style.width=`${Math.sqrt(2)*cellSize*3}px`;
+    winLine.style.height="0.5vw";
+    winLine.style.top="0";
+    winLine.style.left="0";
+    winLine.style.transform="rotate(45deg)";
+    winLine.style.transformOrigin="top left";
+  }
+  else if(a===2 && c===6){ // مورب فرعی
+    winLine.style.width=`${Math.sqrt(2)*cellSize*3}px`;
+    winLine.style.height="0.5vw";
+    winLine.style.top="0";
+    winLine.style.left="0";
+    winLine.style.transform="rotate(-45deg)";
+    winLine.style.transformOrigin="top left";
+  }
+
+  board.appendChild(winLine);
+}
+
+// امتیاز
+function updateScore(player){
+  if(player==="X"){scoreX++; scoreXEl.textContent=scoreX;}
+  else{scoreO++; scoreOEl.textContent=scoreO;}
+}
+
+// حرکت کامپیوتر ساده
+function computerMoveSmart(){
+  for(let i=0;i<9;i++){
+    if(!cells[i]){
+      cells[i]="O";
+      if(checkWin()){cells[i]=null; handleClick(i,board.children[i]); return;}
+      cells[i]=null;
+    }
+  }
+  for(let i=0;i<9;i++){
+    if(!cells[i]){
+      cells[i]="X";
+      if(checkWin()){cells[i]=null; handleClick(i,board.children[i]); return;}
+      cells[i]=null;
+    }
+  }
+  const emptyIndices=cells.map((v,i)=>v===null?i:null).filter(i=>i!==null);
+  if(emptyIndices.length===0) return;
+  const move=emptyIndices[Math.floor(Math.random()*emptyIndices.length)];
+  handleClick(move,board.children[move]);
+}
+
+// شروع دوباره
+function restartGame(fullReset=false){
+  if(fullReset){scoreX=0;scoreO=0;scoreXEl.textContent="0";scoreOEl.textContent="0";}
+  setupBoard();
+}
+
+// بازگشت به منو
+function backToMenu(){
+  game.classList.remove("active");
+  menu.classList.add("active");
+}
+</script>
+</body>
+</html>
